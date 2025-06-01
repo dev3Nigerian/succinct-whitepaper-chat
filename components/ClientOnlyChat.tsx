@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import Image from 'next/image'
-import { Send, Bot, User, FileText, Search, HelpCircle, Copy, Check, AlertCircle, } from 'lucide-react'
+import { Send, Bot, User, FileText, Search, HelpCircle, Copy, Check, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react'
 import LoadingSpinner from './LoadingSpinner'
 
 interface Message {
@@ -56,6 +56,7 @@ export default function ClientOnlyChat() {
   // Get MCP server URL from environment variable
   const mcpServerUrl = process.env.NEXT_PUBLIC_MCP_SERVER_URL || 'https://succint-whitepaper-mcp.onrender.com'
   const [isInitialized, setIsInitialized] = useState(false)
+  const [showQuickActions, setShowQuickActions] = useState(false)
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -318,7 +319,7 @@ export default function ClientOnlyChat() {
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-y-3 animate-shimmer"></div>
         <div className="relative flex items-center justify-between">
           <div className="flex items-center space-x-4">
-          <div className="w-14 h-14 bg-white bg-opacity-20 rounded-full flex items-center justify-center animate-glow overflow-hidden">
+            <div className="w-14 h-14 bg-white bg-opacity-20 rounded-full flex items-center justify-center animate-glow overflow-hidden">
               <Image 
                 src="https://s3.crypto-bonus.cointelegraph.com/wp-content/uploads/2025/02/b-fPXhnB_400x400.jpg"
                 alt="Succinct Network Logo"
@@ -337,28 +338,75 @@ export default function ClientOnlyChat() {
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-gradient-to-r from-pink-50 to-purple-50 p-6 border-b border-pink-200">
-        <div className="flex items-center justify-between mb-4">
-          <p className="text-sm font-medium text-pink-800">✨ Quick Actions</p>
-          <span className="text-xs text-pink-600">Click to explore the whitepaper</span>
+      <div className="bg-gradient-to-r from-pink-50 to-purple-50 p-4 md:p-6 border-b border-pink-200">
+        {/* Desktop/Tablet: Always show actions */}
+        <div className="hidden md:block">
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-sm font-medium text-pink-800">✨ Quick Actions</p>
+            <span className="text-xs text-pink-600">Click to explore the whitepaper</span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {quickActions.map((action, index) => (
+              <button
+                key={index}
+                onClick={() => handleQuickAction(action.query)}
+                disabled={isLoading}
+                className="quick-action-card flex items-start space-x-3 p-4 rounded-xl text-left disabled:opacity-50 disabled:cursor-not-allowed group"
+              >
+                <div className="flex-shrink-0 w-10 h-10 bg-pink-100 rounded-xl flex items-center justify-center group-hover:bg-pink-200 transition-colors">
+                  <div className="text-pink-600">{action.icon}</div>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900">{action.label}</p>
+                  <p className="text-xs text-pink-600 mt-1">{action.description}</p>
+                </div>
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {quickActions.map((action, index) => (
-            <button
-              key={index}
-              onClick={() => handleQuickAction(action.query)}
-              disabled={isLoading}
-              className="quick-action-card flex items-start space-x-3 p-4 rounded-xl text-left disabled:opacity-50 disabled:cursor-not-allowed group"
-            >
-              <div className="flex-shrink-0 w-10 h-10 bg-pink-100 rounded-xl flex items-center justify-center group-hover:bg-pink-200 transition-colors">
-                <div className="text-pink-600">{action.icon}</div>
+
+        {/* Mobile: Dropdown toggle */}
+        <div className="md:hidden">
+          <button
+            onClick={() => setShowQuickActions(!showQuickActions)}
+            className="w-full flex items-center justify-between p-3 bg-white bg-opacity-70 rounded-xl border border-pink-200 hover:bg-opacity-90 transition-all"
+          >
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-pink-100 rounded-lg flex items-center justify-center">
+                <FileText className="w-4 h-4 text-pink-600" />
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900">{action.label}</p>
-                <p className="text-xs text-pink-600 mt-1">{action.description}</p>
-              </div>
-            </button>
-          ))}
+              <span className="text-sm font-medium text-pink-800">Quick Actions</span>
+            </div>
+            {showQuickActions ? (
+              <ChevronUp className="w-5 h-5 text-pink-600" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-pink-600" />
+            )}
+          </button>
+          
+          {showQuickActions && (
+            <div className="mt-4 space-y-3 animate-slide-up">
+              {quickActions.map((action, index) => (
+                <button
+                  key={index}
+                  onClick={() => {
+                    handleQuickAction(action.query);
+                    setShowQuickActions(false); // Close dropdown after selection
+                  }}
+                  disabled={isLoading}
+                  className="w-full quick-action-card flex items-center space-x-3 p-3 rounded-xl text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <div className="flex-shrink-0 w-8 h-8 bg-pink-100 rounded-lg flex items-center justify-center">
+                    <div className="text-pink-600">{action.icon}</div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900">{action.label}</p>
+                    <p className="text-xs text-pink-600 mt-0.5 line-clamp-1">{action.description}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
