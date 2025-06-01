@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Send, Bot, User, FileText, Search, HelpCircle, Copy, Check, AlertCircle, Sparkles } from 'lucide-react'
+import Image from 'next/image'
+import { Send, Bot, User, FileText, Search, HelpCircle, Copy, Check, AlertCircle, } from 'lucide-react'
 import LoadingSpinner from './LoadingSpinner'
 
 interface Message {
@@ -245,7 +246,7 @@ export default function ClientOnlyChat() {
       
       if (error instanceof Error) {
         if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-          errorMessage = `❌ Cannot connect to MCP server at ${mcpServerUrl}. Please check if the server is running and the URL is correct.`
+          errorMessage = `❌ Cannot connect to MCP server. Please check if the server is running and the URL is correct.`
         } else if (error.message.includes('500')) {
           errorMessage = `⚠️ Server error: Internal server error`
         } else if (error.message.includes('timeout')) {
@@ -317,8 +318,15 @@ export default function ClientOnlyChat() {
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-y-3 animate-shimmer"></div>
         <div className="relative flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <div className="w-14 h-14 bg-white bg-opacity-20 rounded-full flex items-center justify-center animate-glow">
-              <Sparkles className="w-8 h-8 animate-float" />
+          <div className="w-14 h-14 bg-white bg-opacity-20 rounded-full flex items-center justify-center animate-glow overflow-hidden">
+              <Image 
+                src="https://s3.crypto-bonus.cointelegraph.com/wp-content/uploads/2025/02/b-fPXhnB_400x400.jpg"
+                alt="Succinct Network Logo"
+                width={40}
+                height={40}
+                className="rounded-full object-cover animate-float"
+                priority
+              />
             </div>
             <div>
               <h1 className="text-2xl font-bold">Succinct Network Assistant</h1>
