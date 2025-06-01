@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Send, Bot, User, FileText, Search, HelpCircle, Settings, Copy, Check, AlertCircle, Sparkles } from 'lucide-react'
+import { Send, Bot, User, FileText, Search, HelpCircle, Copy, Check, AlertCircle, Sparkles } from 'lucide-react'
 import LoadingSpinner from './LoadingSpinner'
 
 interface Message {
@@ -52,9 +52,9 @@ export default function ClientOnlyChat() {
   const [messages, setMessages] = useState<Message[]>([])
   const [inputValue, setInputValue] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [mcpServerUrl, setMcpServerUrl] = useState('http://localhost:3000')
+  // Get MCP server URL from environment variable
+  const mcpServerUrl = process.env.NEXT_PUBLIC_MCP_SERVER_URL || 'https://succint-whitepaper-mcp.onrender.com'
   const [isInitialized, setIsInitialized] = useState(false)
-  const [showSettings, setShowSettings] = useState(false)
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -211,6 +211,7 @@ export default function ClientOnlyChat() {
     setMessages(prev => [...prev, typingMessage])
 
     try {
+      // Use fetch instead of axios to avoid potential React conflicts
       const response = await fetch(`${mcpServerUrl}/tools/call`, {
         method: 'POST',
         headers: {
@@ -229,6 +230,7 @@ export default function ClientOnlyChat() {
       const data = await response.json()
       const botResponse = data.content?.[0]?.text || 'Sorry, I couldn\'t process that request.'
       
+      // Remove typing indicator and add actual response
       setMessages(prev => prev.filter(msg => !msg.isTyping).concat({
         id: `bot-${Date.now()}`,
         type: 'bot',
@@ -303,6 +305,7 @@ export default function ClientOnlyChat() {
     </div>
   )
 
+  // Don't render until mounted to prevent hydration issues
   if (!mounted) {
     return <LoadingSpinner />
   }
@@ -322,35 +325,7 @@ export default function ClientOnlyChat() {
               <p className="text-pink-100 text-sm">Interactive whitepaper exploration ✨</p>
             </div>
           </div>
-          
-          <button
-            onClick={() => setShowSettings(!showSettings)}
-            className="p-3 bg-white bg-opacity-20 rounded-xl hover:bg-opacity-30 transition-all duration-300 hover:scale-105"
-            aria-label="Toggle settings"
-          >
-            <Settings className="w-5 h-5" />
-          </button>
         </div>
-        
-        {/* Server Settings */}
-        {showSettings && (
-          <div className="mt-6 p-4 bg-white bg-opacity-10 rounded-xl backdrop-blur-sm animate-slide-up">
-            <label htmlFor="server-url" className="block text-sm text-pink-100 mb-2">
-              MCP Server URL:
-            </label>
-            <input
-              id="server-url"
-              type="url"
-              value={mcpServerUrl}
-              onChange={(e) => setMcpServerUrl(e.target.value)}
-              className="w-full px-4 py-2 text-gray-900 bg-white rounded-lg border-0 focus:ring-2 focus:ring-pink-300 transition-all"
-              placeholder="http://your-server.com:3000"
-            />
-            <p className="text-xs text-pink-100 mt-2">
-              Update this URL if your MCP server is hosted elsewhere
-            </p>
-          </div>
-        )}
       </div>
 
       {/* Quick Actions */}
